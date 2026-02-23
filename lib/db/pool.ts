@@ -10,15 +10,24 @@ if (!connectionString) {
 const isLocal =
   !connectionString ||
   /localhost|127\.0\.0\.1|\.local\b/i.test(connectionString)
+
+// For remote DBs: accept self-signed / RDS certs to avoid "self-signed certificate in certificate chain" (SELF_SIGNED_CERT_IN_CHAIN)
+const sslConfig = isLocal
+  ? false
+  : { rejectUnauthorized: false }
+
+// Ensure Node's TLS doesn't reject RDS/cloud self-signed certs (some runtimes ignore pg's ssl.rejectUnauthorized)
+if (connectionString && !isLocal) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+}
+
 const pool = connectionString
   ? new Pool({
       connectionString,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
-      ssl: isLocal
-        ? false
-        : { rejectUnauthorized: false }, // RDS and cloud Postgres typically require SSL
+      ssl: sslConfig,
     })
   : null
 
