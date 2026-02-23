@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -48,6 +49,7 @@ export function GroupsClient({
     setPending(true)
     try {
       await leaveGroup(groupId)
+      toast.success('Left group')
       router.refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to leave')
@@ -70,6 +72,7 @@ export function GroupsClient({
         location: (formData.get('location') as string) || undefined,
         county: (formData.get('county') as string) || undefined,
       })
+      toast.success('Group created')
       router.refresh()
       setOpen(false)
       form.reset()
@@ -106,14 +109,14 @@ export function GroupsClient({
           <DialogTitle>Create a group</DialogTitle>
           <DialogDescription>Start a new cooperative or SACCO.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleCreate} className="space-y-4">
+        <form onSubmit={handleCreate} className="space-y-4 min-w-0">
           <div>
             <Label htmlFor="name">Group name *</Label>
-            <Input id="name" name="name" required placeholder="e.g. Maize Farmers Association" />
+            <Input id="name" name="name" required placeholder="e.g. Maize Farmers Association" className="w-full" />
           </div>
           <div>
             <Label htmlFor="type">Type *</Label>
-            <select id="type" name="type" required className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <select id="type" name="type" required className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="">Select</option>
               <option value="Farming Cooperative">Farming Cooperative</option>
               <option value="SACCO">SACCO</option>
@@ -124,20 +127,20 @@ export function GroupsClient({
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" placeholder="Brief description" />
+            <Input id="description" name="description" placeholder="Brief description" className="w-full" />
           </div>
           <div>
             <Label htmlFor="county">County</Label>
-            <Input id="county" name="county" placeholder="e.g. Nakuru" />
+            <Input id="county" name="county" placeholder="e.g. Nakuru" className="w-full" />
           </div>
           <div>
             <Label htmlFor="location">Location / town</Label>
-            <Input id="location" name="location" placeholder="e.g. Eldoret" />
+            <Input id="location" name="location" placeholder="e.g. Eldoret" className="w-full" />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={pending}>{pending ? 'Creating...' : 'Create group'}</Button>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending ? 'Creating...' : 'Create group'}</Button>
           </div>
         </form>
       </DialogContent>

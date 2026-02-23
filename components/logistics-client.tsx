@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +19,7 @@ import { requestShipment } from '@/lib/actions'
 import type { LogisticsPartner } from '@/lib/db/types'
 
 export function LogisticsClient({ partners }: { partners: LogisticsPartner[] }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,8 +38,10 @@ export function LogisticsClient({ partners }: { partners: LogisticsPartner[] }) 
         origin_location: (formData.get('origin_location') as string) || undefined,
         partner_id: (formData.get('partner_id') as string) || undefined,
       })
+      toast.success('Shipment request submitted')
       setOpen(false)
       form.reset()
+      router.refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Request failed')
     } finally {
@@ -64,7 +69,7 @@ export function LogisticsClient({ partners }: { partners: LogisticsPartner[] }) 
                 <DialogTitle>Request shipment</DialogTitle>
                 <DialogDescription>Fill in the details for your shipment.</DialogDescription>
               </DialogHeader>
-              <form onSubmit={submit} className="space-y-4">
+              <form onSubmit={submit} className="space-y-4 min-w-0">
                 <div>
                   <Label htmlFor="product_description">Product description *</Label>
                   <Input
@@ -72,19 +77,20 @@ export function LogisticsClient({ partners }: { partners: LogisticsPartner[] }) 
                     name="product_description"
                     required
                     placeholder="e.g. Maize - 2 bags"
+                    className="w-full"
                   />
                 </div>
                 <div>
                   <Label htmlFor="destination">Destination *</Label>
-                  <Input id="destination" name="destination" required placeholder="e.g. Nakuru Market" />
+                  <Input id="destination" name="destination" required placeholder="e.g. Nakuru Market" className="w-full" />
                 </div>
                 <div>
                   <Label htmlFor="destination_county">Destination county</Label>
-                  <Input id="destination_county" name="destination_county" placeholder="e.g. Nakuru" />
+                  <Input id="destination_county" name="destination_county" placeholder="e.g. Nakuru" className="w-full" />
                 </div>
                 <div>
                   <Label htmlFor="origin_location">Origin / pickup location</Label>
-                  <Input id="origin_location" name="origin_location" placeholder="Your farm or store" />
+                  <Input id="origin_location" name="origin_location" placeholder="Your farm or store" className="w-full" />
                 </div>
                 {partners.length > 0 && (
                   <div>
@@ -92,7 +98,7 @@ export function LogisticsClient({ partners }: { partners: LogisticsPartner[] }) 
                     <select
                       id="partner_id"
                       name="partner_id"
-                      className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm"
                     >
                       <option value="">Any</option>
                       {partners.map((p) => (
@@ -102,9 +108,9 @@ export function LogisticsClient({ partners }: { partners: LogisticsPartner[] }) 
                   </div>
                 )}
                 {error && <p className="text-sm text-red-600">{error}</p>}
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={pending}>{pending ? 'Submitting...' : 'Request'}</Button>
+                <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-2">
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+                  <Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending ? 'Submitting...' : 'Request'}</Button>
                 </div>
               </form>
             </DialogContent>

@@ -86,9 +86,44 @@ export async function createListingFromFormData(formData: FormData) {
 }
 
 export async function deleteListing(id: string) {
+  const session = await getSession()
+  if (!session?.user) throw new Error('Not authenticated')
   const pool = getPool()
   if (!pool) throw new Error('Database not configured')
+  const { rows } = await pool.query<{ user_id: string }>('SELECT user_id FROM listings WHERE id = $1', [id])
+  if (!rows?.[0]) throw new Error('Listing not found')
+  if (rows[0].user_id !== session.user.id) throw new Error('You can only delete your own listings')
   await pool.query('DELETE FROM listings WHERE id = $1', [id])
+  revalidatePath('/protected/marketplace')
+  revalidatePath('/protected')
+}
+
+export async function updateListing(
+  id: string,
+  form: { title?: string; description?: string; price_kes?: number; unit?: string; category?: string; location?: string; location_county?: string; quantity_available?: number }
+) {
+  const session = await getSession()
+  if (!session?.user) throw new Error('Not authenticated')
+  const pool = getPool()
+  if (!pool) throw new Error('Database not configured')
+  const { rows } = await pool.query<{ user_id: string }>('SELECT user_id FROM listings WHERE id = $1', [id])
+  if (!rows?.[0]) throw new Error('Listing not found')
+  if (rows[0].user_id !== session.user.id) throw new Error('You can only edit your own listings')
+  const updates: string[] = []
+  const values: unknown[] = []
+  let i = 1
+  if (form.title !== undefined) { updates.push(`title = $${i++}`); values.push(form.title) }
+  if (form.description !== undefined) { updates.push(`description = $${i++}`); values.push(form.description) }
+  if (form.price_kes !== undefined) { updates.push(`price_kes = $${i++}`); values.push(form.price_kes) }
+  if (form.unit !== undefined) { updates.push(`unit = $${i++}`); values.push(form.unit) }
+  if (form.category !== undefined) { updates.push(`category = $${i++}`); values.push(form.category) }
+  if (form.location !== undefined) { updates.push(`location = $${i++}`); values.push(form.location) }
+  if (form.location_county !== undefined) { updates.push(`location_county = $${i++}`); values.push(form.location_county) }
+  if (form.quantity_available !== undefined) { updates.push(`quantity_available = $${i++}`); values.push(form.quantity_available) }
+  if (updates.length === 0) return
+  updates.push(`updated_at = now()`)
+  values.push(id)
+  await pool.query(`UPDATE listings SET ${updates.join(', ')} WHERE id = $${i}`, values)
   revalidatePath('/protected/marketplace')
   revalidatePath('/protected')
 }

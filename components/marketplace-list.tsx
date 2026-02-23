@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,21 +15,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { createListing } from '@/lib/actions'
+import { createListing, deleteListing } from '@/lib/actions'
 import type { Listing } from '@/lib/db/types'
 
 export function MarketplaceList({
   initialListings,
+  initialMyListingIds = [],
   initialSearch,
   initialCategory,
 }: {
   initialListings: Listing[]
+  initialMyListingIds?: string[]
   initialSearch?: string
   initialCategory?: string
 }) {
   const router = useRouter()
   const [search, setSearch] = useState(initialSearch ?? '')
   const [category, setCategory] = useState(initialCategory ?? '')
+  const myIds = new Set(initialMyListingIds)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,10 +98,13 @@ export function MarketplaceList({
                     <p className="text-sm">{product.quantity_available} {product.unit}</p>
                   </div>
                 )}
-                <div className="flex gap-2 pt-2">
-                  <Button className="flex-1" size="sm">
-                    Contact
+                <div className="flex gap-2 pt-2 flex-wrap">
+                  <Button className="flex-1" size="sm" asChild>
+                    <a href={`mailto:?subject=Inquiry: ${encodeURIComponent(product.title)}`}>Contact</a>
                   </Button>
+                  {myIds.has(product.id) && (
+                    <ListingDeleteButton listingId={product.id} listingTitle={product.title} />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -105,6 +112,29 @@ export function MarketplaceList({
         )}
       </div>
     </>
+  )
+}
+
+function ListingDeleteButton({ listingId, listingTitle }: { listingId: string; listingTitle: string }) {
+  const router = useRouter()
+  const [pending, setPending] = useState(false)
+  async function handleDelete() {
+    if (!confirm(`Remove listing "${listingTitle}"?`)) return
+    setPending(true)
+    try {
+      await deleteListing(listingId)
+      toast.success('Listing removed')
+      router.refresh()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete')
+    } finally {
+      setPending(false)
+    }
+  }
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={handleDelete} disabled={pending}>
+      {pending ? 'Removing...' : 'Remove'}
+    </Button>
   )
 }
 
@@ -136,7 +166,9 @@ function PostListingDialog() {
         location_county,
         quantity_available,
       })
+      toast.success('Listing posted successfully')
       setOpen(false)
+      router.refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create listing')
     } finally {
@@ -159,24 +191,24 @@ function PostListingDialog() {
             e.preventDefault()
             await submit(new FormData(e.currentTarget as HTMLFormElement))
           }}
-          className="space-y-4"
+          className="space-y-4 min-w-0"
         >
           <div>
             <Label htmlFor="title">Title *</Label>
-            <Input id="title" name="title" required placeholder="e.g. Certified Maize Seeds" />
+            <Input id="title" name="title" required placeholder="e.g. Certified Maize Seeds" className="w-full" />
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" placeholder="Brief description" />
+            <Input id="description" name="description" placeholder="Brief description" className="w-full" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="price_kes">Price (KES) *</Label>
-              <Input id="price_kes" name="price_kes" type="number" min={1} required />
+              <Input id="price_kes" name="price_kes" type="number" min={1} required className="w-full" />
             </div>
             <div>
               <Label htmlFor="unit">Unit</Label>
-              <select id="unit" name="unit" className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select id="unit" name="unit" className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="kg">kg</option>
                 <option value="bag">bag</option>
                 <option value="piece">piece</option>
@@ -187,7 +219,7 @@ function PostListingDialog() {
           </div>
           <div>
             <Label htmlFor="category">Category *</Label>
-            <select id="category" name="category" required className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <select id="category" name="category" required className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="">Select</option>
               <option value="Seeds">Seeds</option>
               <option value="Produce">Produce</option>
@@ -198,22 +230,22 @@ function PostListingDialog() {
           </div>
           <div>
             <Label htmlFor="location_county">County</Label>
-            <Input id="location_county" name="location_county" placeholder="e.g. Nakuru" />
+            <Input id="location_county" name="location_county" placeholder="e.g. Nakuru" className="w-full" />
           </div>
           <div>
             <Label htmlFor="location">Location details</Label>
-            <Input id="location" name="location" placeholder="Town or area" />
+            <Input id="location" name="location" placeholder="Town or area" className="w-full" />
           </div>
           <div>
             <Label htmlFor="quantity_available">Quantity available</Label>
-            <Input id="quantity_available" name="quantity_available" type="number" min={0} placeholder="Optional" />
+            <Input id="quantity_available" name="quantity_available" type="number" min={0} placeholder="Optional" className="w-full" />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">
               {pending ? 'Posting...' : 'Post listing'}
             </Button>
           </div>

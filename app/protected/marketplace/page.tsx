@@ -1,11 +1,15 @@
-import { getListings } from '@/lib/actions'
+import { getListings, getMyListings } from '@/lib/actions'
 import { MarketplaceList } from '@/components/marketplace-list'
 
 type Props = { searchParams: Promise<{ q?: string; category?: string }> }
 
 export default async function MarketplacePage({ searchParams }: Props) {
   const { q, category } = await searchParams
-  const listings = await getListings(q, category)
+  const [listings, myListings] = await Promise.all([
+    getListings(q, category),
+    getMyListings(),
+  ])
+  const myListingIds = myListings.map((l) => l.id)
 
   return (
     <div className="flex flex-col pt-16 lg:pt-0">
@@ -22,6 +26,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
         <div className="max-w-7xl mx-auto">
           <MarketplaceList
             initialListings={listings}
+            initialMyListingIds={myListingIds}
             initialSearch={q}
             initialCategory={category}
           />

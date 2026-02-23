@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,6 +27,7 @@ export function FinanceClient({
   maxAmount: number
   minAmount: number
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,8 +44,10 @@ export function FinanceClient({
     setPending(true)
     try {
       await applyForLoan(loanProductId, num)
+      toast.success('Loan application submitted')
       setOpen(false)
       setAmount('')
+      router.refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Application failed')
     } finally {
@@ -60,7 +65,7 @@ export function FinanceClient({
           <DialogTitle>Apply for {loanName}</DialogTitle>
           <DialogDescription>Enter the amount you wish to borrow (KES {minAmount.toLocaleString()} – {maxAmount.toLocaleString()}).</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleApply} className="space-y-4">
+        <form onSubmit={handleApply} className="space-y-4 min-w-0">
           <div>
             <Label htmlFor="amount">Amount (KES)</Label>
             <Input
@@ -71,12 +76,13 @@ export function FinanceClient({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required
+              className="w-full"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={pending}>{pending ? 'Submitting...' : 'Submit application'}</Button>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending ? 'Submitting...' : 'Submit application'}</Button>
           </div>
         </form>
       </DialogContent>
