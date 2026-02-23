@@ -1,0 +1,25 @@
+{
+  "name": "Mkulima Pro",
+  "short_name": "Mkulima Pro",
+  "description": "Smart Farming for Kenya - Advisory, Finance, Marketplace, Logistics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#166534",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"]
+}
