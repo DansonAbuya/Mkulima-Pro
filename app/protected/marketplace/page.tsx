@@ -8,7 +8,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
   const listings = await getListings(q, category)
 
   return (
-    <div className="flex flex-col lg:ml-64 pt-16 lg:pt-0">
+    <div className="flex flex-col pt-16 lg:pt-0">
       <div className="border-b border-gray-200 bg-white p-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900">Marketplace</h1>
