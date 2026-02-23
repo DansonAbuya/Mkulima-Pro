@@ -7,7 +7,8 @@ The app uses **Node.js** on the backend (Next.js server, API routes, server acti
 Copy `.env.example` to `.env.local` and set:
 
 - **`DATABASE_URL`** – Postgres connection string (e.g. RDS):  
-  `postgresql://USER:PASSWORD@your-rds-endpoint:5432/postgres`
+  `postgresql://USER:PASSWORD@your-rds-endpoint:5432/postgres`  
+  For RDS/cloud, the app uses **SSL** automatically (required to avoid “no encryption” / pg_hba errors).
 - **`JWT_SECRET`** – A long random string used to sign session JWTs (e.g. 32+ chars). Use a strong secret in production.
 
 ## 2. Database (PostgreSQL / RDS)
