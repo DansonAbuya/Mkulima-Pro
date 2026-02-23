@@ -38,7 +38,11 @@ Seed data for loan products, logistics partners, and advisory articles is includ
 
 Uses the free [Open-Meteo](https://open-meteo.com) API (no key). Default location is Nairobi (`lib/weather.ts`).
 
-## 5. Run
+## 5. Package manager
+
+This project uses **npm** (not pnpm or yarn). Use `package-lock.json`; do not commit `pnpm-lock.yaml`.
+
+## 6. Run
 
 ```bash
 npm install
