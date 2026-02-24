@@ -49,13 +49,6 @@ export async function signup(form: {
   )
   const profile = rows[0]
   if (!profile) throw new Error('Sign up failed')
-  const token = await createSession({
-    id: profile.id,
-    email: profile.email,
-    role: profile.role,
-    first_name: profile.first_name,
-    last_name: profile.last_name,
-  })
-  await setAuthCookie(token)
-  redirect('/auth/signup-success')
+  // Do not auto-login after signup; send user to login screen with a success flag
+  redirect('/auth/login?signup=1')
 }

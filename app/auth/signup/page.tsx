@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { signup } from '@/lib/auth/actions'
 
 type UserRole = 'smallholder_farmer' | 'commercial_farmer' | 'advisor' | 'enterprise'
@@ -20,7 +19,6 @@ export default function Page() {
   const [role, setRole] = useState<UserRole>('smallholder_farmer')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +31,7 @@ export default function Page() {
     }
     try {
       await signup({ email, password, first_name: firstName, last_name: lastName, role })
-      router.push('/auth/signup-success')
+      // On success, the server action redirects to the login page with a success flag.
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
